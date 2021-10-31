@@ -1,0 +1,6 @@
+Manifest-Version: 1.0
+Created-By: lvsheng
+Agent-Class: com.alibaba.ls.MyAgent
+Can-Redefine-Classes: true
+Can-Retransform-Classes: true
+Premain-Class: com.alibaba.ls.MyAgent
