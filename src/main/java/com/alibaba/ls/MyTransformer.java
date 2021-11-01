@@ -16,10 +16,13 @@ import java.security.ProtectionDomain;
  **/
 public class MyTransformer implements ClassFileTransformer {
 
+    public static final String MYAGENT_BASE_PACKAGE = "myagent.base.package";
+
     @Override
     public byte[] transform(ClassLoader loader, String className, Class<?> classBeingRedefined,
         ProtectionDomain protectionDomain, byte[] classfileBuffer) throws IllegalClassFormatException {
-        if (!className.startsWith("com/alibaba/ls")) {
+        String basePackage = getBasePackage();
+        if (!className.startsWith(basePackage)) {
             return classfileBuffer;
         }
         System.out.println("正在加载类：" + className);
@@ -43,19 +46,31 @@ public class MyTransformer implements ClassFileTransformer {
                  * long myAgentCurrentTimeMillis = System.currentTimeMillis();
                  */
                 ctMethod.addLocalVariable("myAgentCurrentTimeMillis", CtClass.longType);
-                ctMethod.insertBefore("myAgentCurrentTimeMillis = System.currentTimeMillis();");
+                ctMethod.insertBefore("{" +
+                    "myAgentCurrentTimeMillis = System.currentTimeMillis();" +
+                    "System.out.println(\"params : \" + $args);" +
+                    "}");
                 String methodLongName = ctMethod.getLongName();
 
-                ctMethod.insertAfter("System.out.println(\" " + methodLongName
-                    + " time cost: \" + (System.currentTimeMillis() - myAgentCurrentTimeMillis) + \"ms\");");
+                ctMethod.insertAfter("{" +
+                    "System.out.println(\"return value : \" + $_);" +
+                    "System.out.println(\" " + methodLongName
+                    + " time cost: \" + (System.currentTimeMillis() - myAgentCurrentTimeMillis) + \"ms\");"
+                    + "}");
             }
-            byte[] transformed = cl.toBytecode();
-            return transformed;
+            return cl.toBytecode();
         } catch (Exception e) {
             e.printStackTrace();
         }
         return classfileBuffer;
     }
 
-
+    private String getBasePackage() {
+        String basePackage = System.getProperty(MYAGENT_BASE_PACKAGE);
+        if (basePackage == null) {
+            throw new IllegalArgumentException("请指定系统属性参数:" + MYAGENT_BASE_PACKAGE);
+        }
+        basePackage = basePackage.replace('.', '/');
+        return basePackage;
+    }
 }

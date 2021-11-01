@@ -20,9 +20,9 @@
 
     <dependencies>
         <dependency>
-            <groupId>javassist</groupId>
+            <groupId>org.javassist</groupId>
             <artifactId>javassist</artifactId>
-            <version>3.8.0.GA</version>
+            <version>3.28.0-GA</version>
         </dependency>
         <dependency>
             <groupId>junit</groupId>
